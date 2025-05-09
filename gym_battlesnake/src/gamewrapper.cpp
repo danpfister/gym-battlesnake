@@ -12,8 +12,8 @@
 #include "gamerenderer.h"
 
 #define NUM_LAYERS 6
-#define LAYER_WIDTH 39
-#define LAYER_HEIGHT 39
+#define LAYER_WIDTH 11
+#define LAYER_HEIGHT 11
 #define OBS_SIZE NUM_LAYERS * LAYER_WIDTH * LAYER_HEIGHT
 
 struct info {
