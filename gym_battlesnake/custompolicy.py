@@ -14,15 +14,23 @@ class CustomPolicy(FeedForwardPolicy):
         with tf.variable_scope("model", reuse=reuse):
 
             activ = tf.nn.elu
-            # obs: (N, 39, 39, 6)
-            # conv1: (size: 5, stride: 2, filters: 16) -> (N,18,18,16)
-            conv1 = activ(conv(self.processed_obs, 'c1', n_filters=16, filter_size=5, stride=2, init_scale=np.sqrt(2)))
-            # conv2: (size: 4, stride: 2, filters: 32) -> (N,8,8,32)
-            conv2 = activ(conv(conv1, 'c2', n_filters=32, filter_size=4, stride=2, init_scale=np.sqrt(2)))
-            # fc1: (N, 1024)
-            fc1 = activ(linear(conv_to_fc(conv2), 'fc1', n_hidden=1024, init_scale=np.sqrt(2)))
-            # fc2: (N, 512)
-            pi_latent = vf_latent = activ(linear(fc1, 'fc2', n_hidden=512, init_scale=np.sqrt(2)))
+            # obs: (N, 11, 11, 6)
+            
+            # conv1: 3x3, stride 1, padding SAME -> (11x11x16)
+            conv1 = activ(conv(self.processed_obs, 'c1', n_filters=16, filter_size=3, stride=1, init_scale=np.sqrt(2)))
+            
+            # conv2: 3x3, stride 1 -> (11x11x32)
+            conv2 = activ(conv(conv1, 'c2', n_filters=32, filter_size=3, stride=1, init_scale=np.sqrt(2)))
+            
+            # conv3: 3x3, stride 2 -> (6x6x64)
+            conv3 = activ(conv(conv2, 'c3', n_filters=64, filter_size=3, stride=2, init_scale=np.sqrt(2)))
+            
+            # Flatten -> Dense
+            flat = conv_to_fc(conv3)
+            
+            # Fully connected layers
+            fc1 = activ(linear(flat, 'fc1', n_hidden=512, init_scale=np.sqrt(2)))
+            pi_latent = vf_latent = activ(linear(fc1, 'fc2', n_hidden=256, init_scale=np.sqrt(2)))
 
             self.value_fn = linear(vf_latent, 'vf', 1)
 
