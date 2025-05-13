@@ -27,8 +27,8 @@ env_actptr = wrap_function(gamelib, 'env_getactpointer', ctypes.POINTER(ctypes.c
 env_infoptr = wrap_function(gamelib, 'env_getinfopointer', ctypes.POINTER(info), [ctypes.c_void_p])
 
 NUM_LAYERS = 6
-LAYER_WIDTH = 39
-LAYER_HEIGHT = 39
+LAYER_WIDTH = 11
+LAYER_HEIGHT = 11
 
 class BattlesnakeEnv(VecEnv):
     """Multi-Threaded Multi-Agent Snake Environment"""
