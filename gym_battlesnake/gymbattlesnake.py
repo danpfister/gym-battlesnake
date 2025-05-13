@@ -43,6 +43,7 @@ class BattlesnakeEnv(VecEnv):
         self.n_threads = n_threads
         self.n_envs = n_envs
         self.last_lengths = np.full((n_envs), 3, dtype=np.uint8)
+        self.episode_rews = np.zeros((n_envs))
         self.ptr = env_new(self.n_threads, self.n_envs, self.n_opponents+1)
         super(BattlesnakeEnv, self).__init__(self.n_envs, self.observation_space, self.action_space)
         self.reset()
@@ -69,23 +70,28 @@ class BattlesnakeEnv(VecEnv):
 
         infoptr = env_infoptr(self.ptr)
         for i in range(self.n_envs):
+            reward = 0.0
             if infoptr[i].ate:
-                rews[i] += 1.0 # eating bonus
+                reward += 1.0 # eating bonus
             if infoptr[i].alive:
-                rews[i] += 0.1 # surviving bonus
+                reward += 0.1 # surviving bonus
             if infoptr[i].length > self.last_lengths[i]:
-                rews[i] += 0.5 # growing bonus
+                reward += 0.2 # growing bonus
             self.last_lengths[i] = infoptr[i].length
+            self.episode_rews[i] += reward
             if infoptr[i].over: # game done
                 dones[i] = True
-                info[i]['episode'] = {}
                 if infoptr[i].alive: # we won
-                    rews[i] += 5.0
-                    info[i]['episode']['r'] = rews[i]
+                    reward += 5.0
                 else: # we lost
-                    rews[i] -= 2.0
-                    info[i]['episode']['r'] = rews[i]
-                info[i]['episode']['l'] = infoptr[i].turn
+                    reward -= 2.0
+                self.episode_rews[i] += reward
+                info[i]['episode'] = {
+                    'r': self.episode_rews[i],
+                    'l': infoptr[i].turn
+                }
+                self.episode_rews[i] = 0.0
+            rews[i] = reward
 
         return self.getobs(0), rews, dones, info
 
